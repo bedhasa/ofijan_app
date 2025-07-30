@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'year_selection_screen.dart';
 
 class DepartmentScreen extends StatelessWidget {
   final String sectionTitle;
@@ -7,7 +8,6 @@ class DepartmentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Later you'll fetch real departments based on sectionTitle
     final departments = ['CSE', 'IT', 'ECE', 'Mechanical'];
 
     return Scaffold(
@@ -18,13 +18,19 @@ class DepartmentScreen extends StatelessWidget {
       body: ListView.builder(
         itemCount: departments.length,
         itemBuilder: (context, index) {
+          final department = departments[index];
           return ListTile(
-            title: Text(departments[index]),
+            title: Text(department),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () {
-              // Here you can navigate to Year screen next
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Selected ${departments[index]}")),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => YearSelectionScreen(
+                    sectionTitle: sectionTitle,
+                    department: department,
+                  ),
+                ),
               );
             },
           );

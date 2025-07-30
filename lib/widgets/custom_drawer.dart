@@ -44,21 +44,24 @@ class CustomDrawer extends StatelessWidget {
       child: Column(
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(color: Color(0xFF594FB6)),
+            decoration: const BoxDecoration(
+              color: Color(0xFF594FB6), // Full purple background
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
+                // ✅ Custom logo image
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.school, color: Color(0xFF594FB6), size: 32),
+                  backgroundImage: AssetImage('images/ofijan_logo.png'),
                 ),
-                SizedBox(height: 10),
-                Text(
+                const SizedBox(height: 10),
+                const Text(
                   "Ofijan",
                   style: TextStyle(color: Colors.white, fontSize: 20),
                 ),
-                Text(
+                const Text(
                   "Empowering Exam Prep",
                   style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
