@@ -1,35 +1,73 @@
 import 'package:flutter/material.dart';
-import 'year_selection_screen.dart';
+import '../services/api_service.dart';
+import '../models/department.dart';
 
-class DepartmentScreen extends StatelessWidget {
+class DepartmentScreen extends StatefulWidget {
   final String sectionTitle;
 
-  const DepartmentScreen({required this.sectionTitle, super.key});
+  const DepartmentScreen({super.key, required this.sectionTitle});
+
+  @override
+  State<DepartmentScreen> createState() => _DepartmentScreenState();
+}
+
+class _DepartmentScreenState extends State<DepartmentScreen> {
+  late Future<List<Department>> departments;
+
+  @override
+  void initState() {
+    super.initState();
+    departments = ApiService.fetchDepartments();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final departments = ['CSE', 'IT', 'ECE', 'Mechanical'];
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(sectionTitle),
+        title: Text(widget.sectionTitle),
         backgroundColor: const Color(0xFF594FB6),
       ),
-      body: ListView.builder(
-        itemCount: departments.length,
-        itemBuilder: (context, index) {
-          final department = departments[index];
-          return ListTile(
-            title: Text(department),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => YearSelectionScreen(
-                    sectionTitle: sectionTitle,
-                    department: department,
-                  ),
+      body: FutureBuilder<List<Department>>(
+        future: departments,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final departments = snapshot.data ?? [];
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: departments.length,
+            itemBuilder: (context, index) {
+              return Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      backgroundColor: Colors.white,
+                      backgroundImage: AssetImage('images/ofijan_logo.png'),
+                      radius: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        departments[index].title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
