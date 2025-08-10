@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/exam_section.dart';
-import '../screens/department_screen.dart'; // import this
+//import '../models/exam.dart';
+import '../screens/department_screen.dart';
+import 'exam_section.dart';
 
 class ExamCard extends StatelessWidget {
   final ExamSection section;

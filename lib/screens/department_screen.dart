@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/department.dart';
+import 'exam_description_screen.dart';
 
 class DepartmentScreen extends StatefulWidget {
   final String sectionTitle;
@@ -42,32 +43,48 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
             padding: const EdgeInsets.all(12),
             itemCount: departments.length,
             itemBuilder: (context, index) {
-              return Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage('images/ofijan_logo.png'),
-                      radius: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        departments[index].title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                        ),
+              final dept = departments[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ExamDescriptionScreen(
+                        departmentId: departments[index].id, // correct ID
+                        departmentTitle:
+                            departments[index].title, // correct title
                       ),
                     ),
-                  ],
+                  );
+                },
+
+                child: Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        backgroundColor: Colors.white,
+                        backgroundImage: AssetImage('images/ofijan_logo.png'),
+                        radius: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          dept.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

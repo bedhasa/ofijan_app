@@ -36,6 +36,7 @@ class YearSelectionScreen extends StatelessWidget {
                     builder: (context) => ExamListScreen(
                       year: year,
                       department: department,
+                      departmentId: 1,
                       examType: sectionTitle,
                     ),
                   ),
