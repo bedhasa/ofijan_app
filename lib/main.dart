@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:ofijan_app/screens/settings_screen.dart';
-import 'screens/home_screen.dart';
-import 'package:ofijan_app/providers/theme_provider.dart';
+import 'providers/theme_provider.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(
@@ -22,14 +21,25 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Ofijan',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: themeProvider.themeMode,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => HomeScreen(), // Replace with your home
-        '/settings': (context) => const SettingsScreen(),
-      },
+      themeMode: themeProvider.themeMode, // 👈 Dynamic light/dark
+      theme: ThemeData(
+        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF594FB6),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF594FB6),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      home: const SplashScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

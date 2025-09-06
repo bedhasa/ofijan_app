@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ofijan_app/screens/home_screen.dart';
+import 'login_screen.dart';
+import '../services/api_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -36,11 +38,19 @@ class _SplashScreenState extends State<SplashScreen>
     _startNameAnimation();
 
     // Navigate to Home after total 15 seconds
-    Future.delayed(const Duration(seconds: 15), () {
-      if (mounted) {
+    Future.delayed(const Duration(seconds: 15), () async {
+      // If user already logged in, go straight to Home
+      final token = await ApiService.getToken();
+      if (!mounted) return;
+      if (token != null && token.isNotEmpty) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (_) => HomeScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
     });

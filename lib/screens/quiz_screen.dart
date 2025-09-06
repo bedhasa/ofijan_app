@@ -5,14 +5,8 @@ import '../services/api_service.dart';
 class QuizScreen extends StatefulWidget {
   final int examId;
   final String examTitle;
-  final int departmentId; // ✅ NEW
 
-  const QuizScreen({
-    super.key,
-    required this.examId,
-    required this.examTitle,
-    required this.departmentId, // ✅ NEW
-  });
+  const QuizScreen({super.key, required this.examId, required this.examTitle});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -30,28 +24,30 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
-    // ✅ Pass departmentId to API
     questionsFuture = ApiService.fetchQuestionsFront(widget.examId);
   }
 
-  void selectAnswer(int? answerIndex) {
+  void nextQuestion() {
     if (selectedAnswers.length <= currentIndex) {
-      selectedAnswers.add(answerIndex);
-    } else {
-      selectedAnswers[currentIndex] = answerIndex;
+      selectedAnswers.add(null);
     }
 
-    if (answerIndex == questions[currentIndex].correctAnswerIndex) {
-      score++;
-    }
-
-    setState(() {
-      if (currentIndex < questions.length - 1) {
+    if (currentIndex < questions.length - 1) {
+      setState(() {
         currentIndex++;
-      } else {
+      });
+    } else {
+      setState(() {
         showResult = true;
-      }
-    });
+        score = 0;
+        for (int i = 0; i < questions.length; i++) {
+          if (selectedAnswers.length > i &&
+              selectedAnswers[i] == questions[i].correctAnswerIndex) {
+            score++;
+          }
+        }
+      });
+    }
   }
 
   void restartQuiz() {
@@ -96,6 +92,10 @@ class _QuizScreenState extends State<QuizScreen> {
               return buildResultScreen();
             }
 
+            if (showAnswer) {
+              return buildAnswerReview();
+            }
+
             return buildQuestionView();
           }
         },
@@ -121,71 +121,154 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Question ${currentIndex + 1}/${questions.length}',
+            'Question ${currentIndex + 1} of ${questions.length}',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 12),
-          Text(question.question, style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 20),
-          for (int i = 0; i < question.options.length; i++)
-            GestureDetector(
-              onTap: selected == null ? () => selectAnswer(i) : null,
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: selected == i
-                      ? Colors.deepPurple[100]
-                      : Colors.grey[100],
-                  border: Border.all(
-                    color: selected == i
-                        ? Colors.deepPurple
-                        : Colors.grey.shade300,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(question.options[i]),
+          const SizedBox(height: 16),
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                question.question,
+                style: const TextStyle(fontSize: 16),
               ),
             ),
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: ListView.builder(
+              itemCount: question.options.length,
+              itemBuilder: (context, i) => RadioListTile<int>(
+                value: i,
+                groupValue: selected,
+                onChanged: (val) {
+                  setState(() {
+                    if (selectedAnswers.length <= currentIndex) {
+                      selectedAnswers.add(val);
+                    } else {
+                      selectedAnswers[currentIndex] = val;
+                    }
+                  });
+                },
+                activeColor: const Color(0xFF594FB6),
+                title: Text(question.options[i]),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: ElevatedButton(
+              onPressed: selected != null ? nextQuestion : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF594FB6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+              child: Text(
+                currentIndex == questions.length - 1 ? "Finish" : "Next",
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget buildResultScreen() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 40),
           Text(
-            'Your Score: $score / ${questions.length}',
+            'Your Score',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '$score / ${questions.length}',
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: 32,
               fontWeight: FontWeight.bold,
               color: Color(0xFF594FB6),
             ),
           ),
           const SizedBox(height: 30),
           ElevatedButton(
-            onPressed: () {
-              setState(() => showAnswer = true);
-            },
+            onPressed: () => setState(() => showAnswer = true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 116, 87, 167),
+              backgroundColor: const Color(0xFF594FB6),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-            child: const Text('View Answers'),
+            child: const Text("Review Answers"),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
+          OutlinedButton(
             onPressed: restartQuiz,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
-            child: const Text('Retake Quiz'),
+            child: const Text("Retake Quiz"),
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildAnswerReview() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: questions.length,
+      itemBuilder: (context, index) {
+        final q = questions[index];
+        final selected = selectedAnswers.length > index
+            ? selectedAnswers[index]
+            : null;
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Q${index + 1}. ${q.question}",
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Column(
+                  children: List.generate(q.options.length, (i) {
+                    final isCorrect = i == q.correctAnswerIndex;
+                    final isSelected = i == selected;
+                    return ListTile(
+                      leading: Icon(
+                        isCorrect
+                            ? Icons.check_circle
+                            : isSelected
+                            ? Icons.cancel
+                            : Icons.radio_button_unchecked,
+                        color: isCorrect
+                            ? Colors.green
+                            : isSelected
+                            ? Colors.red
+                            : Colors.grey,
+                      ),
+                      title: Text(q.options[i]),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

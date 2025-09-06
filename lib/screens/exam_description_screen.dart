@@ -51,7 +51,7 @@ class ExamDescriptionScreen extends StatelessWidget {
                         examId: exam.id,
                         examTitle:
                             exam.examName, // ✅ Updated field name for clarity
-                        departmentId: departmentId,
+                        //departmentId: departmentId,
                       ),
                     ),
                   );
