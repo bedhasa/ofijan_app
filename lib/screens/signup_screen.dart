@@ -1,5 +1,6 @@
 // lib/screens/signup_screen.dart
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart'; // ✅ Add this
 import '../services/api_service.dart';
 import '../models/department.dart';
 import 'login_screen.dart';
@@ -37,7 +38,7 @@ class _SignupScreenState extends State<SignupScreen> {
         _departments = deps;
       });
     } catch (e) {
-      // ignore, will show empty list
+      // ignore
     }
   }
 
@@ -68,7 +69,6 @@ class _SignupScreenState extends State<SignupScreen> {
       if (!mounted) return;
 
       if (success) {
-        // ✅ Registration successful → go to home
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => LoginScreen()),
@@ -89,6 +89,13 @@ class _SignupScreenState extends State<SignupScreen> {
           _loading = false;
         });
       }
+    }
+  }
+
+  Future<void> _openWebsiteSignup() async {
+    const url = "https://ofijan.com/signup";
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     }
   }
 
@@ -128,6 +135,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     padding: const EdgeInsets.all(14.0),
                     child: Column(
                       children: [
+                        // --- Name fields ---
                         Row(
                           children: [
                             Expanded(
@@ -156,6 +164,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
+
+                        // --- Email ---
                         TextFormField(
                           controller: _email,
                           decoration: const InputDecoration(labelText: 'Email'),
@@ -165,6 +175,8 @@ class _SignupScreenState extends State<SignupScreen> {
                               : null,
                         ),
                         const SizedBox(height: 12),
+
+                        // --- Phone + Department ---
                         Row(
                           children: [
                             Expanded(
@@ -200,6 +212,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
+
+                        // --- Passwords ---
                         TextFormField(
                           controller: _pass,
                           decoration: const InputDecoration(
@@ -221,12 +235,16 @@ class _SignupScreenState extends State<SignupScreen> {
                               v != _pass.text ? 'Passwords do not match' : null,
                         ),
                         const SizedBox(height: 12),
+
                         if (_error != null)
                           Text(
                             _error!,
                             style: const TextStyle(color: Colors.red),
                           ),
+
                         const SizedBox(height: 8),
+
+                        // --- Submit Button ---
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -252,6 +270,49 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ],
                     ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // --- Divider with OR ---
+                Row(
+                  children: const [
+                    Expanded(child: Divider()),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text("or"),
+                    ),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // --- Website Signup ---
+                OutlinedButton(
+                  onPressed: _openWebsiteSignup,
+                  child: const Text("Use website to signup"),
+                ),
+
+                const SizedBox(height: 12),
+
+                // --- Google Signup (placeholder) ---
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Google signup not available yet"),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.g_mobiledata, size: 28),
+                  label: const Text("Sign up with Google"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    minimumSize: const Size(double.infinity, 48),
+                    side: const BorderSide(color: Colors.grey),
                   ),
                 ),
               ],

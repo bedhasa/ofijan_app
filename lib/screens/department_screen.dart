@@ -70,7 +70,9 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                     children: [
                       const CircleAvatar(
                         backgroundColor: Colors.white,
-                        backgroundImage: AssetImage('images/ofijan_logo.png'),
+                        backgroundImage: AssetImage(
+                          'assets/images/ofijan_logo.png',
+                        ),
                         radius: 20,
                       ),
                       const SizedBox(width: 10),

@@ -49,13 +49,14 @@ class ExamDescriptionScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => QuizScreen(
                         examId: exam.id,
-                        examTitle:
-                            exam.examName, // ✅ Updated field name for clarity
-                        //departmentId: departmentId,
+                        departmentId:
+                            exam.departmentId, // ✅ pass department id too
+                        examTitle: exam.examName,
                       ),
                     ),
                   );
                 },
+
                 child: Card(
                   elevation: 2,
                   margin: const EdgeInsets.only(bottom: 12),

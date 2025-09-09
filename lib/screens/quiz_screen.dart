@@ -4,9 +4,15 @@ import '../services/api_service.dart';
 
 class QuizScreen extends StatefulWidget {
   final int examId;
+  final int departmentId;
   final String examTitle;
 
-  const QuizScreen({super.key, required this.examId, required this.examTitle});
+  const QuizScreen({
+    super.key,
+    required this.examId,
+    required this.departmentId,
+    required this.examTitle,
+  });
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -24,7 +30,10 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
-    questionsFuture = ApiService.fetchQuestionsFront(widget.examId);
+    questionsFuture = ApiService.fetchQuestionsFront(
+      departmentId: widget.departmentId,
+      examId: widget.examId,
+    );
   }
 
   void nextQuestion() {
@@ -37,17 +46,42 @@ class _QuizScreenState extends State<QuizScreen> {
         currentIndex++;
       });
     } else {
+      calculateResult();
+    }
+  }
+
+  void prevQuestion() {
+    if (currentIndex > 0) {
       setState(() {
-        showResult = true;
-        score = 0;
-        for (int i = 0; i < questions.length; i++) {
-          if (selectedAnswers.length > i &&
-              selectedAnswers[i] == questions[i].correctAnswerIndex) {
-            score++;
-          }
-        }
+        currentIndex--;
       });
     }
+  }
+
+  void skipQuestion() {
+    if (selectedAnswers.length <= currentIndex) {
+      selectedAnswers.add(null);
+    }
+    nextQuestion();
+  }
+
+  void calculateResult() {
+    // make sure selectedAnswers has an entry for every question
+    while (selectedAnswers.length < questions.length) {
+      selectedAnswers.add(null);
+    }
+
+    setState(() {
+      showResult = true;
+      showAnswer = false;
+      score = 0;
+      for (int i = 0; i < questions.length; i++) {
+        if (selectedAnswers[i] != null &&
+            selectedAnswers[i] == questions[i].correctAnswerIndex) {
+          score++;
+        }
+      }
+    });
   }
 
   void restartQuiz() {
@@ -82,18 +116,19 @@ class _QuizScreenState extends State<QuizScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
-            questions = snapshot.data!;
+            questions = snapshot.data ?? [];
 
             if (questions.isEmpty) {
               return const Center(child: Text('No questions available.'));
             }
 
-            if (showResult) {
-              return buildResultScreen();
-            }
-
+            // show review view first if requested
             if (showAnswer) {
               return buildAnswerReview();
+            }
+
+            if (showResult) {
+              return buildResultScreen();
             }
 
             return buildQuestionView();
@@ -160,21 +195,44 @@ class _QuizScreenState extends State<QuizScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: ElevatedButton(
-              onPressed: selected != null ? nextQuestion : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF594FB6),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Previous
+              ElevatedButton(
+                onPressed: currentIndex > 0 ? prevQuestion : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text("Previous"),
+              ),
+
+              // Skip
+              ElevatedButton(
+                onPressed: () => skipQuestion(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text("Skip"),
+              ),
+
+              // Next / Finish
+              ElevatedButton(
+                onPressed:
+                    (selected != null || currentIndex == questions.length - 1)
+                    ? nextQuestion
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                ),
+                child: Text(
+                  currentIndex == questions.length - 1 ? "Finish" : "Next",
                 ),
               ),
-              child: Text(
-                currentIndex == questions.length - 1 ? "Finish" : "Next",
-              ),
-            ),
+            ],
           ),
         ],
       ),
@@ -205,10 +263,16 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           const SizedBox(height: 30),
           ElevatedButton(
-            onPressed: () => setState(() => showAnswer = true),
+            // open review: hide result and show review screen
+            onPressed: () {
+              setState(() {
+                showResult = false;
+                showAnswer = true;
+              });
+            },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF594FB6),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
             ),
             child: const Text("Review Answers"),
           ),
@@ -231,6 +295,7 @@ class _QuizScreenState extends State<QuizScreen> {
         final selected = selectedAnswers.length > index
             ? selectedAnswers[index]
             : null;
+
         return Card(
           margin: const EdgeInsets.only(bottom: 16),
           child: Padding(
@@ -247,22 +312,40 @@ class _QuizScreenState extends State<QuizScreen> {
                   children: List.generate(q.options.length, (i) {
                     final isCorrect = i == q.correctAnswerIndex;
                     final isSelected = i == selected;
+
+                    Color? leadingColor;
+                    IconData leadingIcon;
+                    if (isCorrect) {
+                      leadingColor = Colors.green;
+                      leadingIcon = Icons.check_circle;
+                    } else if (isSelected && !isCorrect) {
+                      leadingColor = Colors.red;
+                      leadingIcon = Icons.cancel;
+                    } else {
+                      leadingColor = Colors.grey;
+                      leadingIcon = Icons.radio_button_unchecked;
+                    }
+
                     return ListTile(
-                      leading: Icon(
-                        isCorrect
-                            ? Icons.check_circle
-                            : isSelected
-                            ? Icons.cancel
-                            : Icons.radio_button_unchecked,
-                        color: isCorrect
-                            ? Colors.green
-                            : isSelected
-                            ? Colors.red
-                            : Colors.grey,
+                      leading: Icon(leadingIcon, color: leadingColor),
+                      title: Text(
+                        q.options[i],
+                        style: TextStyle(
+                          fontWeight: isCorrect
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
                       ),
-                      title: Text(q.options[i]),
                     );
                   }),
+                ),
+                const SizedBox(height: 8),
+                // Optionally show what the user selected (or 'Not answered')
+                Text(
+                  selected == null
+                      ? 'Your answer: Not answered'
+                      : 'Your answer: ${q.options[selected]}',
+                  style: TextStyle(color: Colors.grey[700]),
                 ),
               ],
             ),

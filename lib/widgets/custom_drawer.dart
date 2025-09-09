@@ -55,7 +55,7 @@ class CustomDrawer extends StatelessWidget {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: Colors.white,
-                  backgroundImage: AssetImage('images/ofijan_logo.png'),
+                  backgroundImage: AssetImage('assets/images/ofijan_logo.png'),
                 ),
                 const SizedBox(height: 10),
                 const Text(
@@ -104,7 +104,7 @@ class CustomDrawer extends StatelessWidget {
             leading: const Icon(Icons.telegram),
             title: const Text('Join Telegram'),
             onTap: () {
-              _launchURL('https://t.me/OfijanTelegram');
+              _launchURL('https://t.me/OfijanExams');
             },
           ),
           ListTile(

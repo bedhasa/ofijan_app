@@ -26,7 +26,7 @@ class Question {
     int correctIndex = optionList.indexWhere((o) => o['correct'] == "1");
 
     return Question(
-      id: json['id'],
+      id: int.tryParse(json['id'].toString()) ?? 0,
       question: _stripHtml(json['question_text'] ?? ''),
       options: optionsText,
       correctAnswerIndex: correctIndex >= 0 ? correctIndex : 0,
